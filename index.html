@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Threat Live Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'cyber-red': '#ff0038',
+                        'cyber-dark': '#0a0a1a',
+                        'cyber-glass': 'rgba(255, 0, 56, 0.15)',
+                    },
+                    fontFamily: {
+                        'orbitron': ['Orbitron', 'sans-serif'],
+                        'rajdhani': ['Rajdhani', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap');
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #0a0a1a;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 56, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 30%, rgba(255, 0, 56, 0.1) 0%, transparent 25%),
+                radial-gradient(circle at 50% 80%, rgba(255, 0, 56, 0.1) 0%, transparent 30%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .glass-card {
+            background: rgba(10, 10, 26, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 0, 56, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(255, 0, 56, 0.1);
+        }
+        
+        .cyber-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 0, 56, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 0, 56, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 0, 56, 0);
+            }
+        }
+        
+        .glitch {
+            position: relative;
+        }
+        
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+        }
+        
+        .glitch::before {
+            color: #0ff;
+            z-index: -1;
+            animation: glitch-effect 3s infinite;
+        }
+        
+        .glitch::after {
+            color: #f0f;
+            z-index: -2;
+            animation: glitch-effect 2s infinite reverse;
+        }
+        
+        @keyframes glitch-effect {
+            0% { transform: translate(0); }
+            20% { transform: translate(-3px, 3px); }
+            40% { transform: translate(-3px, -3px); }
+            60% { transform: translate(3px, 3px); }
+            80% { transform: translate(3px, -3px); }
+            100% { transform: translate(0); }
+        }
+        
+        .map-point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: #ff0038;
+            border-radius: 50%;
+            animation: attack-pulse 1.5s infinite;
+        }
+        
+        @keyframes attack-pulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        
+        .attack-line {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255,0,56,1) 0%, rgba(255,0,56,0) 100%);
+            transform-origin: left center;
+            animation: line-grow 2s forwards;
+        }
+        
+        @keyframes line-grow {
+            from { width: 0; }
+            to { width: var(--line-length); }
+        }
+        
+        .terminal-text {
+            font-family: 'Courier New', monospace;
+            color: #00ff41;
+            text-shadow: 0 0 5px #00ff41;
+        }
+        
+        .typewriter {
+            overflow: hidden;
+            border-right: 3px solid #ff0038;
+            white-space: nowrap;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #ff0038 }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="mb-8">
+            <div class="glass-card rounded-xl p-6 flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <div class="cyber-pulse w-12 h-12 rounded-full bg-cyber-red flex items-center justify-center mr-4">
+                        <i class="fas fa-shield-alt text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold font-orbitron glitch" data-text="CYBER THREAT LIVE">CYBER THREAT LIVE</h1>
+                        <p class="text-gray-300 font-medium">Global Attack Monitoring Dashboard</p>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="mr-4 text-right">
+                        <p class="text-gray-400 text-sm">LAST UPDATE</p>
+                        <p class="font-bold" id="current-time">00:00:00 UTC</p>
+                    </div>
+                    <div class="bg-cyber-red rounded-full w-3 h-3 animate-pulse"></div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="glass-card rounded-xl p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400">TOTAL ATTACKS</p>
+                        <h2 class="text-3xl font-bold font-orbitron" id="total-attacks">24,718</h2>
+                    </div>
+                    <div class="bg-cyber-glass rounded-full p-3">
+                        <i class="fas fa-bolt text-cyber-red"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="h-1 w-full bg-gray-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-cyber-red rounded-full" style="width: 72%"></div>
+                    </div>
+                    <p class="text-xs mt-1 text-gray-400">+12% from last hour</p>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-xl p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400">ACTIVE THREATS</p>
+                        <h2 class="text-3xl font-bold font-orbitron" id="active-threats">1,429</h2>
+                    </div>
+                    <div class="bg-cyber-glass rounded-full p-3">
+                        <i class="fas fa-biohazard text-cyber-red"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="h-1 w-full bg-gray-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-cyber-red rounded-full" style="width: 58%"></div>
+                    </div>
+                    <p class="text-xs mt-1 text-gray-400">+8% from last hour</p>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-xl p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400">COUNTRIES AFFECTED</p>
+                        <h2 class="text-3xl font-bold font-orbitron" id="countries-affected">87</h2>
+                    </div>
+                    <div class="bg-cyber-glass rounded-full p-3">
+                        <i class="fas fa-globe-americas text-cyber-red"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="h-1 w-full bg-gray-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-cyber-red rounded-full" style="width: 43%"></div>
+                    </div>
+                    <p class="text-xs mt-1 text-gray-400">+3 from last hour</p>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-xl p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400">THREAT LEVEL</p>
+                        <h2 class="text-3xl font-bold font-orbitron text-cyber-red">HIGH</h2>
+                    </div>
+                    <div class="bg-cyber-glass rounded-full p-3">
+                        <i class="fas fa-exclamation-triangle text-cyber-red"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="h-1 w-full bg-gray-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-cyber-red rounded-full" style="width: 82%"></div>
+                    </div>
+                    <p class="text-xs mt-1 text-gray-400">Critical infrastructure at risk</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- World Map -->
+            <div class="lg:col-span-2 glass-card rounded-xl p-4 overflow-hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold font-orbitron">GLOBAL ATTACK MAP</h2>
+                    <div class="flex items-center">
+                        <span class="text-xs mr-2">LIVE</span>
+                        <div class="bg-cyber-red rounded-full w-2 h-2 animate-pulse"></div>
+                    </div>
+                </div>
+                <div class="relative" style="height: 400px; background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/World_map_-_low_resolution.svg/1200px-World_map_-_low_resolution.svg.png'); background-size: contain; background-position: center; background-repeat: no-repeat;" id="world-map">
+                    <!-- Attack points will be added here by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Threat Feed -->
+            <div class="glass-card rounded-xl p-4 overflow-hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold font-orbitron">LIVE THREAT FEED</h2>
+                    <div class="bg-cyber-glass px-3 py-1 rounded-full text-xs font-medium">REALTIME</div>
+                </div>
+                <div class="space-y-4 h-96 overflow-y-auto pr-2" id="threat-feed">
+                    <!-- Threat items will be added here by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Attack Types -->
+            <div class="glass-card rounded-xl p-4">
+                <h2 class="text-xl font-bold font-orbitron mb-4">ATTACK TYPE DISTRIBUTION</h2>
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">DDoS</span>
+                            <span class="text-sm text-gray-400">34%</span>
+                        </div>
+                        <div class="w-full bg-gray-800 rounded-full h-2">
+                            <div class="bg-cyber-red h-2 rounded-full" style="width: 34%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">Phishing</span>
+                            <span class="text-sm text-gray-400">28%</span>
+                        </div>
+                        <div class="w-full bg-gray-800 rounded-full h-2">
+                            <div class="bg-cyber-red h-2 rounded-full" style="width: 28%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">Ransomware</span>
+                            <span class="text-sm text-gray-400">19%</span>
+                        </div>
+                        <div class="w-full bg-gray-800 rounded-full h-2">
+                            <div class="bg-cyber-red h-2 rounded-full" style="width: 19%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">Data Breach</span>
+                            <span class="text-sm text-gray-400">12%</span>
+                        </div>
+                        <div class="w-full bg-gray-800 rounded-full h-2">
+                            <div class="bg-cyber-red h-2 rounded-full" style="width: 12%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">Malware</span>
+                            <span class="text-sm text-gray-400">7%</span>
+                        </div>
+                        <div class="w-full bg-gray-800 rounded-full h-2">
+                            <div class="bg-cyber-red h-2 rounded-full" style="width: 7%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Top Targets -->
+            <div class="glass-card rounded-xl p-4">
+                <h2 class="text-xl font-bold font-orbitron mb-4">TOP TARGET SECTORS</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-cyber-glass flex items-center justify-center mr-3">
+                            <i class="fas fa-university text-cyber-red"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between">
+                                <span class="font-medium">Financial</span>
+                                <span class="text-cyber-red">42%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-1 mt-1">
+                                <div class="bg-cyber-red h-1 rounded-full" style="width: 42%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-cyber-glass flex items-center justify-center mr-3">
+                            <i class="fas fa-hospital text-cyber-red"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between">
+                                <span class="font-medium">Healthcare</span>
+                                <span class="text-cyber-red">31%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-1 mt-1">
+                                <div class="bg-cyber-red h-1 rounded-full" style="width: 31%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-cyber-glass flex items-center justify-center mr-3">
+                            <i class="fas fa-industry text-cyber-red"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between">
+                                <span class="font-medium">Manufacturing</span>
+                                <span class="text-cyber-red">23%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-1 mt-1">
+                                <div class="bg-cyber-red h-1 rounded-full" style="width: 23%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-cyber-glass flex items-center justify-center mr-3">
+                            <i class="fas fa-lightbulb text-cyber-red"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between">
+                                <span class="font-medium">Energy</span>
+                                <span class="text-cyber-red">18%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-1 mt-1">
+                                <div class="bg-cyber-red h-1 rounded-full" style="width: 18%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-cyber-glass flex items-center justify-center mr-3">
+                            <i class="fas fa-truck text-cyber-red"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between">
+                                <span class="font-medium">Transportation</span>
+                                <span class="text-cyber-red">15%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-1 mt-1">
+                                <div class="bg-cyber-red h-1 rounded-full" style="width: 15%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Security Terminal -->
+            <div class="glass-card rounded-xl p-4">
+                <h2 class="text-xl font-bold font-orbitron mb-4">SECURITY TERMINAL</h2>
+                <div class="bg-black bg-opacity-70 rounded-lg p-4 h-64 overflow-y-auto terminal-text" id="terminal">
+                    <p>> Initializing Cyber Threat Monitoring System...</p>
+                    <p>> Connecting to global threat intelligence feeds...</p>
+                    <p>> Establishing secure channels...</p>
+                    <p>> Synchronizing with 24 threat databases...</p>
+                    <p>> System ready. Monitoring global network activity.</p>
+                    <p class="typewriter">> WARNING: Multiple attack vectors detected...</p>
+                    <!-- More terminal output will be added by JavaScript -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="mt-8 text-center text-gray-500 text-sm">
+            <p>CYBER THREAT LIVE DASHBOARD | REAL-TIME MONITORING SYSTEM | LAST UPDATE: <span id="footer-time">00:00:00 UTC</span></p>
+            <p class="mt-1">This is a simulation. Data shown is for demonstration purposes only.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toUTCString().split(' ')[4];
+            document.getElementById('current-time').textContent = timeString;
+            document.getElementById('footer-time').textContent = timeString;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // Simulate attacks on world map
+        const worldMap = document.getElementById('world-map');
+        const mapWidth = worldMap.offsetWidth;
+        const mapHeight = worldMap.offsetHeight;
+        
+        // Common attack locations (x%, y%)
+        const commonLocations = [
+            {x: 25, y: 45, country: "United States"},  // North America
+            {x: 50, y: 35, country: "Russia"},        // Russia
+            {x: 52, y: 45, country: "China"},         // China
+            {x: 45, y: 40, country: "India"},         // India
+            {x: 48, y: 30, country: "Germany"},       // Europe
+            {x: 55, y: 65, country: "Brazil"},        // South America
+            {x: 70, y: 60, country: "Australia"},     // Australia
+            {x: 35, y: 70, country: "South Africa"},  // Africa
+        ];
+        
+        function simulateAttack() {
+            // Randomly select a common location or generate a random one
+            const useCommon = Math.random() > 0.3;
+            let attackLocation;
+            
+            if (useCommon) {
+                attackLocation = commonLocations[Math.floor(Math.random() * commonLocations.length)];
+            } else {
+                attackLocation = {
+                    x: Math.random() * 80 + 10, // 10-90%
+                    y: Math.random() * 80 + 10, // 10-90%
+                    country: "Unknown"
+                };
+            }
+            
+            // Create attack point
+            const attackPoint = document.createElement('div');
+            attackPoint.className = 'map-point';
+            attackPoint.style.left = `${attackLocation.x}%`;
+            attackPoint.style.top = `${attackLocation.y}%`;
+            worldMap.appendChild(attackPoint);
+            
+            // Create attack line (from random origin to target)
+            const originX = Math.random() * 100;
+            const originY = Math.random() * 100;
+            const lineLength = Math.sqrt(Math.pow(attackLocation.x - originX, 2) + Math.pow(attackLocation.y - originY, 2));
+            const angle = Math.atan2(attackLocation.y - originY, attackLocation.x - originX) * 180 / Math.PI;
+            
+            const attackLine = document.createElement('div');
+            attackLine.className = 'attack-line';
+            attackLine.style.left = `${originX}%`;
+            attackLine.style.top = `${originY}%`;
+            attackLine.style.setProperty('--line-length', `${lineLength}%`);
+            attackLine.style.transform = `rotate(${angle}deg)`;
+            worldMap.appendChild(attackLine);
+            
+            // Remove elements after animation
+            setTimeout(() => {
+                attackPoint.remove();
+                attackLine.remove();
+            }, 2000);
+            
+            // Update counters
+            updateCounters();
+            
+            // Add to threat feed
+            addToThreatFeed(attackLocation.country);
+            
+            // Add to terminal
+            addToTerminal(attackLocation.country);
+        }
+        
+        // Update counters randomly
+        function updateCounters() {
+            const totalAttacks = document.getElementById('total-attacks');
+            const activeThreats = document.getElementById('active-threats');
+            const countriesAffected = document.getElementById('countries-affected');
+            
+            // Increment total attacks
+            let currentTotal = parseInt(totalAttacks.textContent.replace(/,/g, ''));
+            currentTotal += Math.floor(Math.random() * 5) + 1;
+            totalAttacks.textContent = currentTotal.toLocaleString();
+            
+            // Randomly update active threats
+            if (Math.random() > 0.7) {
+                let currentActive = parseInt(activeThreats.textContent.replace(/,/g, ''));
+                const change = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+                currentActive = Math.max(1000, currentActive + change);
+                activeThreats.textContent = currentActive.toLocaleString();
+            }
+            
+            // Occasionally update countries affected
+            if (Math.random() > 0.9) {
+                let currentCountries = parseInt(countriesAffected.textContent);
+                if (currentCountries < 90 && Math.random() > 0.5) {
+                    countriesAffected.textContent = currentCountries + 1;
+                } else if (currentCountries > 80 && Math.random() > 0.5) {
+                    countriesAffected.textContent = currentCountries - 1;
+                }
+            }
+        }
+        
+        // Add to threat feed
+        const threatFeed = document.getElementById('threat-feed');
+        const attackTypes = [
+            "DDoS Attack",
+            "Phishing Campaign",
+            "Ransomware Infection",
+            "Data Breach",
+            "Malware Distribution",
+            "Zero-Day Exploit",
+            "SQL Injection",
+            "Credential Stuffing",
+            "Man-in-the-Middle",
+            "Advanced Persistent Threat"
+        ];
+        
+        const targetSectors = [
+            "Financial Institution",
+            "Healthcare Provider",
+            "Government Agency",
+            "Energy Grid",
+            "Telecom Provider",
+            "Manufacturing Plant",
+            "Transport Network",
+            "Education System",
+            "Retail Chain",
+            "Cloud Provider"
+        ];
+        
+        function addToThreatFeed(country) {
+            const now = new Date();
+            const timeString = now.toTimeString().substring(0, 8);
+            
+            const attackType = attackTypes[Math.floor(Math.random() * attackTypes.length)];
+            const targetSector = targetSectors[Math.floor(Math.random() * targetSectors.length)];
+            
+            const severity = ["Low", "Medium", "High", "Critical"][Math.floor(Math.random() * 4)];
+            
+            const threatItem = document.createElement('div');
+            threatItem.className = 'glass-card rounded-lg p-3 border-l-4 border-cyber-red';
+            threatItem.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="font-bold">${attackType}</p>
+                        <p class="text-sm text-gray-400">${targetSector} in ${country}</p>
+                    </div>
+                    <span class="text-xs px-2 py-1 rounded-full ${severity === 'Critical' ? 'bg-cyber-red' : severity === 'High' ? 'bg-yellow-600' : 'bg-gray-700'}">${severity}</span>
+                </div>
+                <div class="flex justify-between items-center mt-2">
+                    <span class="text-xs text-cyber-red">${timeString}</span>
+                    <div class="flex space-x-1">
+                        <span class="text-xs bg-cyber-glass px-2 py-0.5 rounded">${Math.floor(Math.random() * 9000) + 1000} IPs</span>
+                        <span class="text-xs bg-cyber-glass px-2 py-0.5 rounded">${Math.floor(Math.random() * 50) + 5} min</span>
+                    </div>
+                </div>
+            `;
+            
+            threatFeed.insertBefore(threatItem, threatFeed.firstChild);
+            
+            // Limit feed items
+            if (threatFeed.children.length > 15) {
+                threatFeed.removeChild(threatFeed.lastChild);
+            }
+        }
+        
+        // Add to terminal
+        const terminal = document.getElementById('terminal');
+        const terminalMessages = [
+            "New attack vector detected from {country}",
+            "Scanning for vulnerabilities in {country} network",
+            "Traffic spike detected in {country}",
+            "Multiple login attempts from {country}",
+            "Possible breach attempt from {country}",
+            "Analyzing packet patterns from {country}",
+            "Threat intelligence updated for {country}",
+            "Firewall rules updated for {country} traffic",
+            "Monitoring suspicious activity in {country}",
+            "Applying countermeasures for {country} threats"
+        ];
+        
+        function addToTerminal(country) {
+            const now = new Date();
+            const timeString = now.toTimeString().substring(0, 8);
+            
+            const message = terminalMessages[Math.floor(Math.random() * terminalMessages.length)].replace('{country}', country);
+            
+            const terminalLine = document.createElement('p');
+            terminalLine.innerHTML = `<span class="text-gray-500">${timeString}</span> > ${message}`;
+            
+            terminal.appendChild(terminalLine);
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            // Limit terminal lines
+            if (terminal.children.length > 20) {
+                terminal.removeChild(terminal.children[5]); // Remove one of the early lines
+            }
+        }
+        
+        // Start simulation
+        setInterval(simulateAttack, 800);
+        
+        // Initial terminal animation
+        setTimeout(() => {
+            const initialMessages = [
+                "> Scanning global networks...",
+                "> Detecting anomalies...",
+                "> Analyzing traffic patterns...",
+                "> WARNING: Multiple attack vectors detected",
+                "> ALERT: Critical infrastructure under attack",
+                "> Deploying countermeasures...",
+                "> Monitoring 24,718 active threats globally"
+            ];
+            
+            initialMessages.forEach((msg, i) => {
+                setTimeout(() => {
+                    const line = document.createElement('p');
+                    line.textContent = msg;
+                    terminal.appendChild(line);
+                    terminal.scrollTop = terminal.scrollHeight;
+                }, i * 800);
+            });
+        }, 3500);
+    </script>
+<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with &#x1F49C; by Uncanny Stranger</p></body>
+</html>
